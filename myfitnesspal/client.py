@@ -305,6 +305,10 @@ class Client(MFPBase):
 
         return measurements
 
+    def _get_exercise(self, document):
+        exercise_tag = document.xpath("//table[@id='cardio-diary']//tfoot/tr[2]/td[3]/span[@class='soFar']")[0]
+        return int(exercise_tag.text)
+
     def get_exercise(self, *args):
         if len(args) == 1 and isinstance(args[0], datetime.date):
             date = args[0]
@@ -318,7 +322,7 @@ class Client(MFPBase):
             )
         )
 
-        total = _get_exercise(document)
+        total = self._get_exercise(document)
 
         return total
 
@@ -368,10 +372,6 @@ class Client(MFPBase):
         header_text = [notes_header.text] if notes_header.text else []
         lines = header_text + list(map(lambda x: x.tail, notes_header))
         return '\n'.join([l.strip() for l in lines])
-
-    def _get_exercise(self, document):
-        exercise_tag = document.xpath("//table[@id='cardio-diary']//tfoot/tr[2]/td[3]/span[@class='soFar']")
-        return int(exercise_tag.text)
 
     def _get_water(self, document):
         water_header = document.xpath("//div[@class='water-counter']/p/a")[0]
