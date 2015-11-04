@@ -80,6 +80,14 @@ class Client(MFPBase):
             date.strftime('%Y-%m-%d')
         )
 
+    def _get_url_for_exercise(self, date):
+        return os.path.join(
+            self.BASE_URL,
+            'exercise/diary/'
+        ) + '?date=%s' % (
+            date.strftime('%Y-%m-%d')
+        )
+
     def _get_url_for_measurements(self, page=1, measurement_id=1):
         return os.path.join(
             self.BASE_URL,
@@ -297,6 +305,23 @@ class Client(MFPBase):
 
         return measurements
 
+    def get_exercise(self, *args):
+        if len(args) == 1 and isinstance(args[0], datetime.date):
+            date = args[0]
+        else:
+            raise ValueError(
+                'your only argument for exercise must be a date.'
+            )
+        document = self._get_document_for_url(
+            self._get_url_for_exercise(
+                date
+            )
+        )
+
+        total = _get_exercise(document)
+
+        return total
+
     def _get_measurements(self, document):
 
         # find the tr element for each measurement entry on the page
@@ -343,6 +368,10 @@ class Client(MFPBase):
         header_text = [notes_header.text] if notes_header.text else []
         lines = header_text + list(map(lambda x: x.tail, notes_header))
         return '\n'.join([l.strip() for l in lines])
+
+    def _get_exercise(self, document):
+        exercise_tag = document.xpath("//table[@id='cardio-diary']//tfoot/tr[2]/td[3]/span[@class='soFar']")
+        return int(exercise_tag.text)
 
     def _get_water(self, document):
         water_header = document.xpath("//div[@class='water-counter']/p/a")[0]
