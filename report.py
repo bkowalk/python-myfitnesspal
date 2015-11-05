@@ -14,24 +14,42 @@ if __name__ == "__main__":
     client = myfitnesspal.Client(args.username, args.password)
 
     today = dt.today()-td(hours=24)
-    print("Report as of", today.date())
+    print("Fetching report for " + args.username + "as of" + today.date() + "...")
     day = client.get_date(today)
 
-    print("Calories:", day.totals.get('calories'))
-    print("Breakfast:", day.meals[0].totals.get('calories'))
-    print("Lunch:", day.meals[1].totals.get('calories'))
-    print("Dinner:", day.meals[2].totals.get('calories'))
-    print("Snacks:", day.meals[3].totals.get('calories'))
-    print("Weight:", client.get_measurements('Weight',today.date()).get(today.date()))
-    print("Exercise:", client.get_exercise(today.date()))
+    calories = day.totals.get('calories')
+    breakfast = day.meals[0].totals.get('calories')
+    lunch = day.meals[1].totals.get('calories')
+    dinner = day.meals[2].totals.get('calories')
+    snacks = day.meals[3].totals.get('calories')
+    weight = client.get_measurements('Weight',today.date()).get(today.date())
+    exercise = client.get_exercise(today.date())
+
+    print("Calories:", calories)
+    print("Breakfast:", breakfast)
+    print("Lunch:", lunch)
+    print("Dinner:", dinner)
+    print("Snacks:", snacks)
+    print("Weight:", weight)
+    print("Exercise:", exercise)
+    print("Submitting to DB");
 
     try:
-        con = MySQLdb.connect(user='root',passwd='pantalones', db='scoreboard')
-        cur=con.cursor()
-        cur.execute("INSERT INTO scorechart VALUES (null,'bkowalk','5-10-15',5,10,15,20,25,30,182.5)")
-        cur.execute("select * from scorechart")
-        print ("result:",cur.fetchone())
+        con = MySQLdb.connect(user='root', passwd='pantalones', db='scoreboard')
+        cur = con.cursor()
+        cur.execute("INSERT INTO scorechart "
+            + "VALUES (null,\""
+            + args.username + "\",\""
+            + today.date() + "\","
+            + calories + ","
+            + breakfast + ","
+            + lunch + ","
+            + dinner + ","
+            + snacks + ","
+            + exercise + ","
+            + weight)")
         con.commit()
         con.close()
+        print("Successfully submitted.");
     except:
         print("Error %d: %s" % (e.args[0], e.args[1]))
